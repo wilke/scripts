@@ -98,7 +98,9 @@ while($next){
 		my $error = system("ws-load") ;
 		print "ERROR:\t" , $error , "\n" ;
 
-		#my $error = `ws-load Communities.Metagenome $fname $path/$fname -w Data`		
+		if ($error){
+			my $error = `ws-load Communities.Metagenome $fname $path/$fname -w Data`		
+		}		
 	}
 	
 	
