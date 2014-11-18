@@ -99,7 +99,8 @@ while($next){
 		print "ERROR:\t" , $error , "\n" ;
 
 		if ($error){
-			my $error = `ws-load Communities.Metagenome $fname $path/$fname -w Data`		
+			my $error = `ws-load Communities.Metagenome $fname $path/$fname -w Data`	 ;
+			print $error , "\n" ; 
 		}		
 	}
 	
