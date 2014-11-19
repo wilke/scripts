@@ -298,7 +298,7 @@ sub dump_all_profiles{
 			
 				my $time_got_data = time ;
 				
-				print join "\t" , "" , $time_got_data , ($time_got_data - $time_start) , "\n";
+				print join "\t" , "" , $time_got_data , ($time_got_data - $time_start) ;
 			
 				$data->{url} = $p->{url} ;
 			
@@ -311,7 +311,7 @@ sub dump_all_profiles{
 				
 				import_into_workspace($fname , "$path/$fname" , $p->{ws_type} , $workspace_name);
 				my $time_load = time ;
-				print join "\t" , "" , ($time_got_data - $time_load) , "\n";
+				print join "\t" , "" , ($time_load - $time_got_data) , "\n";
 			}
 		
 			
