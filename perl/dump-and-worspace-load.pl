@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Config::Simple;
+#use Config::Simple;
 
 use Getopt::Long;
 
@@ -17,7 +17,7 @@ sub help {
 
 
 
-my $HOST      = 'http://api.metagenomics.anl.gov';
+my $HOST      = 'http://kbase.us/services/communities';
 my $text      = '';
 my $user      = '';
 my $pass      = '';
@@ -61,9 +61,6 @@ my $json = new JSON;
 
 
 
-my $resource = "metagenome";
-
-
 
 my $url = join "/" , $HOST , $resource;
 if ($webkey) {
@@ -98,6 +95,9 @@ else{
 	if ($resource eq "metagenome"){
 		&dump_all_metagenomes();
 	}
+	elsif ($resource eq "profile"){
+		&dump_all_profiles($path)
+	}
 	else{
 		print STDERR "Dumper for $resource not available!\n";
 	}
@@ -105,7 +105,7 @@ else{
 
 sub dump_all_metagenomes{
 	
-	my $next = "http://api.metagenomics.anl.gov/metagenome?limit=$limit&verbosity=full";
+	my $next = "http://kbase.us/services/communities/metagenome?limit=$limit&verbosity=full";
 
 
 	# loop through all metagenomes , api call returns paginated results
@@ -166,7 +166,7 @@ sub dump_metagenome_from_file{
 	
 	foreach my $id (@$ids){
 		
-		my $url = "http://api.metagenomics.anl.gov/metagenome/$id?verbosity=full";
+		my $url = "http://kbase.us/services/communities/metagenome/$id?verbosity=full";
 		print $url , "\n";
 
 		# loop through all metagenomes , api call returns paginated results
@@ -212,4 +212,115 @@ sub import_into_workspace{
 	   print STDERR $error;
 	}
 	
+}
+
+
+
+sub dump_all_profiles{
+	my ($path , $ws_type) = @_ ;
+	
+	my $next = "http://kbase.us/services/communities/metagenome?limit=$limit&verbosity=mixs";
+
+
+	# loop through all metagenomes , api call returns paginated results
+	while ($next) {
+
+    	my $content = $ua->get($next)->content;
+    	my $data    = $json->decode($content);
+
+		# link to next page
+    	$next = $data->{next};
+
+		# Create workspace object for every metagenome in page
+		foreach my $mg ( @{ $data->{data} } ) {
+
+        	# print join "\t", $mg->{id}, lc( $mg->{sequence_type} ), "\n";
+
+        	
+
+			my $mgid = $mg->{id} ;
+			
+			
+			# Define profiles 	
+			my $SEED = {
+				name => "SEED",
+				type => "taxonomic",
+            	url  => "http://kbase.us/services/communities//profile/$mgid/?source=SEED&type=organism&hit_type=all",
+				ws_type => "Communities.TaxonomicProfile"
+        	};
+
+			my $Subsystems = {
+            	name => "Subsystems",
+				type => "functional",
+            	url  => "http://kbase.us/services/communities//profile/$mgid/?source=Subsystems&type=function&hit_type=all",
+				ws_type => "Communities.FunctionalProfile" ,
+        	};
+
+        	my $SILVA = {
+            	name => "Silva",
+            	type => "taxonomic",
+            	url  => "http://kbase.us/services/communities//profile/$mgid/?source=SSU&type=organism&hit_type=all",
+				ws_type => "Communities.TaxonomicProfile"
+        	};
+			
+			my $profiles = [] ;
+
+		    if ( $mg->{sequence_type} eq "WGS" ) {
+				
+				# retrieve all profiles in list
+				push @$profiles , $SEED , $Subsystems , $SILVA ;
+				
+			}
+			elsif( $mg->{sequence_type} eq "Amplicon" ) {
+				# retrieve all profiles in list
+				push @$profiles , $SILVA ;
+			}
+			elsif( $mg->{sequence_type} eq "MT" ) {
+				# retrieve all profiles in list
+				push @$profiles , $SILVA ;
+			}
+			else{
+				print STDERR "Unknown  metagenome type ". $mg->{sequence_type}." for $mgid\n" ;
+			}
+			
+			foreach my $p (@$profiles){
+				
+	        	my $fname = join ".", $mg->{id}, lc( $mg->{sequence_type} ), $p->{type} , 'profile';
+				
+				my $time_start = time ;
+				
+				print join "\t", $mg->{id}, lc( $mg->{sequence_type} ), $p->{name} , $time_start ;
+				
+				
+		    	my $content = $ua->get($p->{url})->content;
+		    	my $data    = $json->decode($content); 
+			
+				my $time_got_data = time ;
+				
+				print join "\t" , "" , $time_got_data , ($time_got_data - $time_start);
+			
+				$data->{url} = $p->{url} ;
+			
+
+			
+				# Dump json to file
+	   		 	open( FILE, ">$path/$fname" )or die "Can't open $path/$fname for writing!\n";
+				print FILE $json->encode($data);
+				close(FILE);
+				
+				import_into_workspace($fnmae , "$path/$fname" , $p->{ws_type} , $workspace_name);
+				my $time_load = time ;
+				print join "\t" , "" , ($time_got_data - $time_load) , "\n";
+			}
+		
+			
+		
+				
+    	}
+
+    	#	print Dumper $data ;
+
+   	 print $next , "\n";
+	}
+
 }
