@@ -26,7 +26,7 @@ my $verbosity = 'full';
 my $help      = '';
 my $webkey    = '';
 my $offset    = '0';
-my $limit     = '10';
+my $limit     = '100';
 my $id        = undef;
 my $path      = "./" ;
   
@@ -95,11 +95,12 @@ while($next){
 		close(FILE);
 		
 
-		my $error = system("ws-load --help") ;
+		my $error = 1 || system("ws-load --help") ;
+
 		# print "ERROR:\t" , $error , "\n" ;
 
 		if ($error){
- 			my $error = `ws-load Communities.Metagenome $fname $path/$fname -w Data`
+		    my $error = `ws-load Communities.Metagenome $fname $path/$fname -w Data` ;
 			print STDERR $error ;		
 		}		
 	}
