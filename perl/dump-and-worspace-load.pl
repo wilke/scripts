@@ -193,7 +193,7 @@ sub export_metagenome{
  	open( FILE, ">$path/$fname" )or die "Can't open $path/$fname for writing!\n";
 	print FILE $json->encode($mg);
 	close(FILE);
->>>>>>> 7ea869e822135fea3dcf81054d572ea9ece1908a
+
 	
 	return ("$fname" , $path , "Communities.Metagenome") ;
 }
@@ -298,7 +298,7 @@ sub dump_all_profiles{
 			
 				my $time_got_data = time ;
 				
-				print join "\t" , "" , $time_got_data , ($time_got_data - $time_start);
+				print join "\t" , "" , $time_got_data , ($time_got_data - $time_start) , "\n";
 			
 				$data->{url} = $p->{url} ;
 			
@@ -309,7 +309,7 @@ sub dump_all_profiles{
 				print FILE $json->encode($data);
 				close(FILE);
 				
-				import_into_workspace($fnmae , "$path/$fname" , $p->{ws_type} , $workspace_name);
+				import_into_workspace($fname , "$path/$fname" , $p->{ws_type} , $workspace_name);
 				my $time_load = time ;
 				print join "\t" , "" , ($time_got_data - $time_load) , "\n";
 			}
