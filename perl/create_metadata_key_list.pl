@@ -79,7 +79,7 @@ sub create_key_list{
 	my $data = <FILE> ;
 	my $mg   = $json->decode($data) ;
 		
-	print Dumper $mg ;
+	#print STDERR Dumper $mg ;
 	
 	foreach my $keyA ( keys( %{$mg->{metadata}}) ) {
 		
