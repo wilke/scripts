@@ -49,6 +49,7 @@ GetOptions ( 'user=s' => \$user,
 			 'file=s' => \$file,
 			 'resource=s' => \$resource ,
 			 'continue=s' => \$continue ,
+			 'workspace=s' => \$workspace_name,
 			 );
 			 
 
