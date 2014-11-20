@@ -300,10 +300,13 @@ sub dump_all_profiles{
 				my $time_start = time ;
 						
 		    	my $content = $ua->get($p->{url})->content;
-		    	my $data ;
+		    	
+				my $data ;
+				
 				eval{
 					$data = $json->decode($content); 
-				}
+				};
+				
 				if ($@){
 					print STDERR $content , "\n";
 					print STDERR $@ ;
