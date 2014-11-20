@@ -31,6 +31,7 @@ my $id        = undef;
 my $path      = "./" ;
 my $resource  = '';
 my $file      = '';
+my $continue  = '';
 my $workspace_name = "Data" ;
   
 
@@ -47,6 +48,7 @@ GetOptions ( 'user=s' => \$user,
 			 'dir=s' => \$path, 
 			 'file=s' => \$file,
 			 'resource=s' => \$resource ,
+			 'continue=s' => \$continue ,
 			 );
 			 
 
@@ -233,6 +235,8 @@ sub dump_all_profiles{
     	$next = $data->{next};
 
 		# Create workspace object for every metagenome in page
+		
+		
 		foreach my $mg ( @{ $data->{data} } ) {
 
         	# print join "\t", $mg->{id}, lc( $mg->{sequence_type} ), "\n";
@@ -241,6 +245,10 @@ sub dump_all_profiles{
 
 			my $mgid = $mg->{id} ;
 			
+			if($continue){
+				$continue = 0 if ( $continue eq $mgid ) ;
+				next ;
+			}
 			
 			# Define profiles 	
 			my $SEED = {
@@ -292,7 +300,15 @@ sub dump_all_profiles{
 				my $time_start = time ;
 						
 		    	my $content = $ua->get($p->{url})->content;
-		    	my $data    = $json->decode($content); 
+		    	my $data ;
+				eval{
+					$data = $json->decode($content); 
+				}
+				if ($@){
+					print STDERR $content , "\n";
+					print STDERR $@ ;
+					exit;
+				}
 			
 				# time for stats
 				my $time_got_data = time ;
