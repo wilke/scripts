@@ -288,18 +288,16 @@ sub dump_all_profiles{
 				
 	        	my $fname = join ".", $mg->{id}, lc( $mg->{sequence_type} ), $p->{type} , 'profile';
 				
+				# time for stats
 				my $time_start = time ;
-				
-				print join "\t", $mg->{id}, lc( $mg->{sequence_type} ), $p->{name} , $time_start ;
-				
-				
+						
 		    	my $content = $ua->get($p->{url})->content;
 		    	my $data    = $json->decode($content); 
 			
+				# time for stats
 				my $time_got_data = time ;
 				
-				print join "\t" , "" , $time_got_data , ($time_got_data - $time_start) ;
-			
+				# missing url in profile, adding self referencing url to profile data structure
 				$data->{url} = $p->{url} ;
 			
 
@@ -310,8 +308,12 @@ sub dump_all_profiles{
 				close(FILE);
 				
 				import_into_workspace($fname , "$path/$fname" , $p->{ws_type} , $workspace_name);
+				
+				# time for stats
 				my $time_load = time ;
-				print join "\t" , "" , ($time_load - $time_got_data) , "\n";
+				
+				# log message
+				print join "\t", $mg->{id}, lc( $mg->{sequence_type} ), $p->{name} , $time_start , $time_got_data , $time_load , ($time_got_data - $time_start) , ($time_load - $time_got_data) , "\n";
 			}
 		
 			
