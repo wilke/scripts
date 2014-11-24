@@ -82,6 +82,9 @@ if($file){
 		if ($resource eq "metagenome"){
 			&dump_metagenome_from_file($file);
 		}
+		elsif ($resource eq "profile") {
+			&dump_profile_from_file($file);
+		}
 		else{
 			print STDERR "Dumper for $resource not implemented!\n";
 		}
@@ -349,4 +352,144 @@ sub dump_all_profiles{
    	 print $next , "\n";
 	}
 
+}
+
+
+sub export_profile{
+	my ($mg , $path) = @_ ;
+	
+	my $mgid = $mg->{id} ;
+	
+	if($continue){
+		$continue = 0 if ( $continue eq $mgid ) ;
+		next ;
+	}
+	
+	# Define profiles 	
+	my $SEED = {
+		name => "SEED",
+		type => "taxonomic",
+    	url  => "http://kbase.us/services/communities//profile/$mgid/?source=SEED&type=organism&hit_type=all",
+		ws_type => "Communities.TaxonomicProfile"
+	};
+
+	my $Subsystems = {
+    	name => "Subsystems",
+		type => "functional",
+    	url  => "http://kbase.us/services/communities//profile/$mgid/?source=Subsystems&type=function&hit_type=all",
+		ws_type => "Communities.FunctionalProfile" ,
+	};
+
+	my $SILVA = {
+    	name => "Silva",
+    	type => "taxonomic",
+    	url  => "http://kbase.us/services/communities//profile/$mgid/?source=SSU&type=organism&hit_type=all",
+		ws_type => "Communities.TaxonomicProfile"
+	};
+	
+	# List of profiles and profile parameters
+	my $profiles = [] ;
+	
+	# List for created/dumped profiles for further treatment
+	my @profile_file_names ;
+    
+	# Add specific profile parameters to list, this will be used to download profiles with specified parameters
+	if ( $mg->{sequence_type} eq "WGS" ) {
+		
+		# retrieve all profiles in list
+		push @$profiles , $SEED , $Subsystems , $SILVA ;
+		
+	}
+	elsif( $mg->{sequence_type} eq "Amplicon" ) {
+		# retrieve all profiles in list
+		push @$profiles , $SILVA ;
+	}
+	elsif( $mg->{sequence_type} eq "MT" ) {
+		# retrieve all profiles in list
+		push @$profiles , $SILVA ;
+	}
+	else{
+		print STDERR "Unknown  metagenome type ". $mg->{sequence_type}." for $mgid\n" ;
+	}
+	
+	# Download profiles for every parameter set
+	foreach my $p (@$profiles){
+		
+    	my $fname = join ".", $mg->{id}, lc( $mg->{sequence_type} ), $p->{type} , 'profile';
+		
+		# time for stats
+		my $time_start = time ;
+				
+    	my $content = $ua->get($p->{url})->content;
+    	
+		my $data ;
+		
+		eval{
+			$data = $json->decode($content); 
+		};
+		
+		if ($@){
+			print STDERR $content , "\n";
+			print STDERR $@ ;
+			exit;
+		}
+	
+		# time for stats
+		my $time_got_data = time ;
+		
+		# missing url in profile, adding self referencing url to profile data structure
+		$data->{url} = $p->{url} ;
+	
+
+	
+		# Dump json to file
+	 	open( FILE, ">$path/$fname" )or die "Can't open $path/$fname for writing!\n";
+		print FILE $json->encode($data);
+		close(FILE);
+		
+		my $ws_type = "Communities.FunctionalProfile" ;
+		$ws_type = "Communities.TaxonomicProfile" if ($p->{type} eq "taxonomic") ;
+		
+		push @profile_file_names , [$fname , $path , $ws_type] ;
+	}
+	
+	return \@profile_file_names ;
+}
+
+sub dump_profile_from_file{
+	my ($file,$ids) = @_;
+	
+	if($file){
+		open(FILE , $file) or die "Can't open file $file for reading!\n";
+		while(my $line = <FILE>){
+			chomp $line ;
+			my ($id) = $line =~/^([\w\.]+)/;
+			push @$ids , $id ;
+		}
+		close(FILE)
+	}
+	
+	print Dumper @$ids ;
+
+	
+	foreach my $id (@$ids){
+		
+		my $url = "http://kbase.us/services/communities/metagenome/$id?verbosity=full";
+		print $url , "\n";
+
+		# loop through all metagenomes , api call returns paginated results
+
+	    my $content = $ua->get($url)->content;
+	    my $mg    = $json->decode($content);
+		
+    	my ($profile_file_names ,$path , $workspace_type) = &export_profile($mg , $path) ;
+		
+		foreach my $p (@$profile_file_names){ 
+			
+			my ($f , $path , $workspace_type) = @$p ; 
+			&import_into_workspace($f, "$path/$f" , $workspace_type ,  $workspace_name);
+		}
+		
+	}
+	
 }
