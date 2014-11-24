@@ -236,7 +236,17 @@ sub dump_all_profiles{
 	while ($next) {
 
     	my $content = $ua->get($next)->content;
-    	my $data    = $json->decode($content);
+		my $data    = '';
+		
+		eval{
+			$data = $json->decode($content); 
+		};
+		if ($@){
+			print STDERR $content , "\n";
+			print STDERR $@ ;
+			exit;
+		}
+    	
 
 		# link to next page
     	$next = $data->{next};
