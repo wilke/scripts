@@ -58,8 +58,6 @@ if ($help) {
   exit 0;
 }
 
-
-
 my $json = new JSON;
 
 
@@ -123,6 +121,11 @@ sub dump_all_metagenomes{
 		# Create workspace object for every metagenome in page
 		foreach my $mg ( @{ $data->{data} } ) {
 
+		    if($continue){
+			$continue = 0 if ( $continue eq $mg->{id} ) ;
+			next ;
+		    }
+
         	print join "\t", $mg->{id}, lc( $mg->{sequence_type} ), "\n";
 
         	my $fname = join ".", $mg->{id}, lc( $mg->{sequence_type} ),
@@ -139,7 +142,7 @@ sub dump_all_metagenomes{
 
 			# Load object from file into workspace
 			if ($error) {
-      		  my $error =`ws-load Communities.Metagenome $fname $path/$fname -w Data` ;
+      		  my $error =`ws-load Communities.Metagenome $fname $path/$fname -w $workspace_name` ;
        		  print STDERR $error;
         	}
     	}
@@ -178,7 +181,7 @@ sub dump_metagenome_from_file{
 	    my $mg    = $json->decode($content);
 		
     	my ($f ,$p , $t) = &export_metagenome($mg , $path) ;
-		&import_into_workspace($f, "$p/$f" , $t);
+		&import_into_workspace($f, "$p/$f" , $t ,  $workspace_name);
 
 		
 	}
