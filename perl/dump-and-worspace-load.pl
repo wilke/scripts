@@ -254,6 +254,7 @@ sub dump_all_profiles{
 			
 			if($continue){
 				$continue = 0 if ( $continue eq $mgid ) ;
+				print STDERR "Skipping $mgid\n" ;
 				next ;
 			}
 			
