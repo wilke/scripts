@@ -475,10 +475,25 @@ sub dump_profile_from_file{
 		while(my $line = <FILE>){
 			chomp $line ;
 			my ($id) = $line =~/^([\w\.]+)/;
+			
+			if($continue){
+				$continue = 0 if ( $continue eq $id ) ;
+				print STDERR "Skipping $id\n" ;
+				next ;
+			}
+			
 			push @$ids , $id ;
 		}
 		close(FILE)
 	}
+
+	
+	if($continue){
+		$continue = 0 if ( $continue eq $mgid ) ;
+		print STDERR "Skipping $mgid\n" ;
+		next ;
+	}
+	
 	
 	print Dumper @$ids ;
 
