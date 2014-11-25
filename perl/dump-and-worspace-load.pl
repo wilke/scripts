@@ -487,13 +487,7 @@ sub dump_profile_from_file{
 		close(FILE)
 	}
 
-	
-	if($continue){
-		$continue = 0 if ( $continue eq $mgid ) ;
-		print STDERR "Skipping $mgid\n" ;
-		next ;
-	}
-	
+       	
 	
 	print Dumper @$ids ;
 
