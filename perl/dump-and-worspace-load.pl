@@ -326,7 +326,7 @@ sub dump_all_profiles{
 				};
 				
 				if ($@){
-					print STDERR $content , "\n";
+					print STDERR "Error: " , $content , "\n";
 					print STDERR $@ ;
 					exit;
 				}
