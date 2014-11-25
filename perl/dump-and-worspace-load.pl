@@ -327,6 +327,7 @@ sub dump_all_profiles{
 				
 				if ($@){
 					print STDERR "Error: " , $content , "\n";
+					print STDERR "Error:" , $p->{url} , "\n" ;
 					print STDERR $@ ;
 					exit;
 				}
