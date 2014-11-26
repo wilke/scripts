@@ -436,12 +436,15 @@ sub export_profile{
     	
 		my $data ;
 		
+		
+		
 		eval{
 			$data = $json->decode($content); 
 		};
 		
 		if ($@){
-			print STDERR $content , "\n";
+			print STDERR "Error: " , $content , "\n";
+			print STDERR "Error:" , $p->{url} , "\n" ;
 			print STDERR $@ ;
 			exit;
 		}
