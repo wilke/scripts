@@ -443,8 +443,10 @@ sub export_profile{
 		};
 		
 		if ($@){
+			my $time_error = time ;
 			print STDERR "Error: " , $content , "\n";
 			print STDERR "Error:" , $p->{url} , "\n" ;
+			print STDERR "Error: " , "Stopped after " , ($time_error - $time_start) , " seconds.\n";
 			print STDERR $@ ;
 			exit;
 		}
