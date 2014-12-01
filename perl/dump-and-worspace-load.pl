@@ -109,7 +109,7 @@ else{
 
 sub dump_all_metagenomes{
 	
-	my $next = "http://kbase.us/services/communities/metagenome?limit=$limit&verbosity=full";
+	my $next = "http://api.metagenomics.anl.gov/metagenome?limit=$limit&verbosity=full";
 
 
 	# loop through all metagenomes , api call returns paginated results
@@ -175,7 +175,7 @@ sub dump_metagenome_from_file{
 	
 	foreach my $id (@$ids){
 		
-		my $url = "http://kbase.us/services/communities/metagenome/$id?verbosity=full";
+		my $url = "http://api.metagenomics.anl.gov/metagenome/$id?verbosity=full";
 		print $url , "\n";
 
 		# loop through all metagenomes , api call returns paginated results
@@ -229,7 +229,7 @@ sub import_into_workspace{
 sub dump_all_profiles{
 	my ($path , $ws_type) = @_ ;
 	
-	my $next = "http://kbase.us/services/communities/metagenome?limit=$limit&verbosity=mixs";
+	my $next = "http://api.metagenomics.anl.gov/metagenome?limit=$limit&verbosity=mixs";
 
 
 	# loop through all metagenomes , api call returns paginated results
@@ -272,21 +272,21 @@ sub dump_all_profiles{
 			my $SEED = {
 				name => "SEED",
 				type => "taxonomic",
-            	url  => "http://kbase.us/services/communities//profile/$mgid/?source=SEED&type=organism&hit_type=all",
+            	url  => "http://api.metagenomics.anl.gov//profile/$mgid/?source=SEED&type=organism&hit_type=all",
 				ws_type => "Communities.TaxonomicProfile"
         	};
 
 			my $Subsystems = {
             	name => "Subsystems",
 				type => "functional",
-            	url  => "http://kbase.us/services/communities//profile/$mgid/?source=Subsystems&type=function&hit_type=all",
+            	url  => "http://api.metagenomics.anl.gov//profile/$mgid/?source=Subsystems&type=function&hit_type=all",
 				ws_type => "Communities.FunctionalProfile" ,
         	};
 
         	my $SILVA = {
             	name => "Silva",
             	type => "taxonomic",
-            	url  => "http://kbase.us/services/communities//profile/$mgid/?source=SSU&type=organism&hit_type=all",
+            	url  => "http://api.metagenomics.anl.gov//profile/$mgid/?source=SSU&type=organism&hit_type=all",
 				ws_type => "Communities.TaxonomicProfile"
         	};
 			
@@ -381,21 +381,21 @@ sub export_profile{
 	my $SEED = {
 		name => "SEED",
 		type => "taxonomic",
-    	url  => "http://kbase.us/services/communities//profile/$mgid/?source=SEED&type=organism&hit_type=all",
+    	url  => "http://api.metagenomics.anl.gov//profile/$mgid/?source=SEED&type=organism&hit_type=all",
 		ws_type => "Communities.TaxonomicProfile"
 	};
 
 	my $Subsystems = {
     	name => "Subsystems",
 		type => "functional",
-    	url  => "http://kbase.us/services/communities//profile/$mgid/?source=Subsystems&type=function&hit_type=all",
+    	url  => "http://api.metagenomics.anl.gov//profile/$mgid/?source=Subsystems&type=function&hit_type=all",
 		ws_type => "Communities.FunctionalProfile" ,
 	};
 
 	my $SILVA = {
     	name => "Silva",
     	type => "taxonomic",
-    	url  => "http://kbase.us/services/communities//profile/$mgid/?source=SSU&type=organism&hit_type=all",
+    	url  => "http://api.metagenomics.anl.gov//profile/$mgid/?source=SSU&type=organism&hit_type=all",
 		ws_type => "Communities.TaxonomicProfile"
 	};
 	
@@ -500,7 +500,7 @@ sub dump_profile_from_file{
 	
 	foreach my $id (@$ids){
 		
-		my $url = "http://kbase.us/services/communities/metagenome/$id?verbosity=full";
+		my $url = "http://api.metagenomics.anl.gov/metagenome/$id?verbosity=full";
 		print $url , "\n";
 
 		# loop through all metagenomes , api call returns paginated results
