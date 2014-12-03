@@ -370,7 +370,8 @@ sub dump_all_profiles{
 sub export_profile{
 	my ($mg , $path) = @_ ;
 	
-	my $mgid = $mg->{id} ;
+	my $mgid 	= $mg->{id} ;
+	my $error 	= 0 ;
 	
 	if($continue){
 		$continue = 0 if ( $continue eq $mgid ) ;
@@ -443,12 +444,14 @@ sub export_profile{
 		};
 		
 		if ($@){
+			$error = 1 ;
 			my $time_error = time ;
 			print STDERR "Error: " , $content , "\n";
 			print STDERR "Error:" , $p->{url} , "\n" ;
 			print STDERR "Error: " , "Stopped after " , ($time_error - $time_start) , " seconds.\n";
 			print STDERR $@ ;
-			exit;
+			
+			return ( \@profile_file_names , $error) ;
 		}
 	
 		# time for stats
@@ -470,7 +473,7 @@ sub export_profile{
 		push @profile_file_names , [$fname , $path , $ws_type] ;
 	}
 	
-	return \@profile_file_names ;
+	return (\@profile_file_names , $error ) ;
 }
 
 sub dump_profile_from_file{
@@ -508,8 +511,26 @@ sub dump_profile_from_file{
 	    my $content = $ua->get($url)->content;
 	    my $mg    = $json->decode($content);
 		
-    	my ($profile_file_names ,$path , $workspace_type) = &export_profile($mg , $path) ;
 		
+		##### TEST #####
+		my $counter = 3 ;
+		my $repeat  = 1 ;
+		my $wait    = 10 ;
+		my $profile_file_names = undef ;
+		
+		while($repeat and $counter){
+    		($profile_file_names , $repeat) = &export_profile($mg , $path) ;
+			$counter--;
+			if ($repeat){
+				print STDERR "Error , waiting $wait seconds for retry.\n" unless($counter) ;
+				sleep $wait ;
+				$wait = $wait * 4 ;
+			}
+		}	
+
+		# skip if error aka repeat
+		next if $repeat ;
+
 		foreach my $p (@$profile_file_names){ 
 			
 			my ($f , $path , $workspace_type) = @$p ; 
