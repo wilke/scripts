@@ -312,6 +312,10 @@ sub dump_all_profiles{
 			
 			foreach my $p (@$profiles){
 				
+	        	my $mgname = join ".", $mg->{id}, lc( $mg->{sequence_type} ),
+	          	'metagenome';
+				
+				
 	        	my $fname = join ".", $mg->{id}, lc( $mg->{sequence_type} ), $p->{type} , 'profile';
 				
 				# time for stats
@@ -338,7 +342,16 @@ sub dump_all_profiles{
 				# missing url in profile, adding self referencing url to profile data structure
 				$data->{url} = $p->{url} ;
 			
-
+				# get metagenome ws object
+				my $tmp = `ws-get -w $workspace_name $mgname` ;
+				unless( $tmp =~ /No object with name/){
+					$data->{metagenomes} = { 
+											description => 'parents' ,
+											elements    => { 
+												$mgname => { metagenome_ref => "$workspace_name/$mgname" },
+											}
+										};
+				}
 			
 				# Dump json to file
 	   		 	open( FILE, ">$path/$fname" )or die "Can't open $path/$fname for writing!\n";
