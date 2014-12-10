@@ -312,6 +312,10 @@ sub dump_all_profiles{
 			
 			foreach my $p (@$profiles){
 				
+	        	my $mgname = join ".", $mg->{id}, lc( $mg->{sequence_type} ),
+	          	'metagenome';
+				
+				
 	        	my $fname = join ".", $mg->{id}, lc( $mg->{sequence_type} ), $p->{type} , 'profile';
 				
 				# time for stats
