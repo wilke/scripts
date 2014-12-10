@@ -123,7 +123,7 @@ foreach my $metagenome (@{ $data->{metagenomes} } ){
 			
 		 
 		   $ftp->put($stage->{file_name});
-		   print $ftp->ls ;
+		   print join "\n" , $ftp->ls ;
 		   #$ftp->cwd("/pub") or die "Cannot change working directory ", $ftp->message;
 		   #$ftp->get("that.file") or die "get failed ", $ftp->message;
 		   #$ftp->quit;
