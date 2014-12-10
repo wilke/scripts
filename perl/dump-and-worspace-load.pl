@@ -268,117 +268,50 @@ sub dump_all_profiles{
 				next ;
 			}
 			
-			# Define profiles 	
-			my $SEED = {
-				name => "SEED",
-				type => "taxonomic",
-            	url  => "http://api.metagenomics.anl.gov//profile/$mgid/?source=SEED&type=organism&hit_type=all",
-				ws_type => "Communities.TaxonomicProfile"
-        	};
-
-			my $Subsystems = {
-            	name => "Subsystems",
-				type => "functional",
-            	url  => "http://api.metagenomics.anl.gov//profile/$mgid/?source=Subsystems&type=function&hit_type=all",
-				ws_type => "Communities.FunctionalProfile" ,
-        	};
-
-        	my $SILVA = {
-            	name => "Silva",
-            	type => "taxonomic",
-            	url  => "http://api.metagenomics.anl.gov//profile/$mgid/?source=SSU&type=organism&hit_type=all",
-				ws_type => "Communities.TaxonomicProfile"
-        	};
 			
-			my $profiles = [] ;
-
-		    if ( $mg->{sequence_type} eq "WGS" ) {
-				
-				# retrieve all profiles in list
-				push @$profiles , $SEED , $Subsystems , $SILVA ;
-				
-			}
-			elsif( $mg->{sequence_type} eq "Amplicon" ) {
-				# retrieve all profiles in list
-				push @$profiles , $SILVA ;
-			}
-			elsif( $mg->{sequence_type} eq "MT" ) {
-				# retrieve all profiles in list
-				push @$profiles , $SILVA ;
-			}
-			else{
-				print STDERR "Unknown  metagenome type ". $mg->{sequence_type}." for $mgid\n" ;
-			}
-			
-			foreach my $p (@$profiles){
-				
-	        	my $mgname = join ".", $mg->{id}, lc( $mg->{sequence_type} ),
-	          	'metagenome';
-				
-				
-	        	my $fname = join ".", $mg->{id}, lc( $mg->{sequence_type} ), $p->{type} , 'profile';
-				
-				# time for stats
-				my $time_start = time ;
-						
-		    	my $content = $ua->get($p->{url})->content;
-		    	
-				my $data ;
-				
-				eval{
-					$data = $json->decode($content); 
-				};
-				
-				if ($@){
-					print STDERR "Error: " , $content , "\n";
-					print STDERR "Error:" , $p->{url} , "\n" ;
-					print STDERR $@ ;
-					exit;
-				}
-			
-				# time for stats
-				my $time_got_data = time ;
-				
-				# missing url in profile, adding self referencing url to profile data structure
-				$data->{url} = $p->{url} ;
-			
-			# get metagenome ws object
-			my $mgname = join ".", $mg->{id}, lc( $mg->{sequence_type} ),
-			'metagenome';
-			my $tmp = `ws-get -w $workspace_name $mgname` ;
-			unless( $tmp =~ /No object with name/){
-			    $data->{metagenomes} = { 
-				description => 'parents' ,
-				elements    => { 
-				    $mgname => { ref => "$workspace_name/$mgname" },
-				}
-			    };
-			}
-			
-				# Dump json to file
-	   		 	open( FILE, ">$path/$fname" )or die "Can't open $path/$fname for writing!\n";
-				print FILE $json->encode($data);
-				close(FILE);
-				
-				import_into_workspace($fname , "$path/$fname" , $p->{ws_type} , $workspace_name);
-				
-				# time for stats
-				my $time_load = time ;
-				
-				# log message
-				print join "\t", $mg->{id}, lc( $mg->{sequence_type} ), $p->{name} , $time_start , $time_got_data , $time_load , ($time_got_data - $time_start) , ($time_load - $time_got_data) , "\n";
-			}
+			##### TEST #####
+			my $counter = 3 ;
+			my $repeat  = 1 ;
+			my $wait    = 10 ;
+			my $profile_file_names = undef ;
 		
-			
+			# Time
+			my $time_start = time ;
 		
+			while($repeat and $counter){
+	    		($profile_file_names , $repeat) = &export_profile($mg , $path) ;
+				$counter--;
+				if ($repeat){
+					print STDERR "Error , waiting $wait seconds for retry.\n" unless($counter) ;
+					sleep $wait ;
+					$wait = $wait * 4 ;
+				}
+			}	
+
+			# skip if error aka repeat
+			next if $repeat ;
+			
+			# Time
+			my $time_got_data = time ;
+			
+			foreach my $p (@$profile_file_names){ 
+			
+				my ($f , $path , $workspace_type) = @$p ; 
+				&import_into_workspace($f, "$path/$f" , $workspace_type ,  $workspace_name);
+			}
+				
+			# time for stats
+			my $time_load = time ;
+				
+			# log message
+			print join "\t", $mg->{id}, lc( $mg->{sequence_type} ) , 
+			$time_start , $time_got_data , $time_load , ($time_got_data - $time_start) , ($time_load - $time_got_data) , "\n";
 				
     	}
 
     	#	print Dumper $data ;
-
-   	 print $next , "\n";
+   	 	print $next , "\n";
 	}
-
 }
 
 
@@ -469,12 +402,24 @@ sub export_profile{
 			return ( \@profile_file_names , $error) ;
 		}
 	
+	
 		# time for stats
 		my $time_got_data = time ;
 		
 		# missing url in profile, adding self referencing url to profile data structure
 		$data->{url} = $p->{url} ;
 	
+		# get metagenome ws object
+		my $mgname = join ".", $mg->{id}, lc( $mg->{sequence_type} ),'metagenome';
+		my $tmp = `ws-get -w $workspace_name $mgname` ;
+		unless( $tmp =~ /No object with name/){
+	    	$data->{metagenomes} = { 
+									description => 'parents' ,
+									elements    => { 
+		    										$mgname => { ref => "$workspace_name/$mgname" },
+													}
+	    										};
+											}
 
 	
 		# Dump json to file
@@ -524,7 +469,7 @@ sub dump_profile_from_file{
 		# loop through all metagenomes , api call returns paginated results
 
 	    my $content = $ua->get($url)->content;
-	    my $mg    = $json->decode($content);
+	    my $mg    	= $json->decode($content);
 		
 		
 		##### TEST #####
