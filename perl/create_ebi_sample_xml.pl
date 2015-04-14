@@ -32,7 +32,7 @@ my $type = "Sample" ;
 my $submission_id = undef ;
 
 # ENA URL
-my $auth = undef ;
+my $auth = "ENA%20Webin-115%203NjBQ6H8" ;
 my $ena_url = 
 "https://www-test.ebi.ac.uk/ena/submit/drop-box/submit/?auth=$auth";
 
@@ -41,6 +41,7 @@ GetOptions(
      'url=s'  => \$url ,
      'submit' => \$submit,
      'submission_id=s' => \$submission_id,
+	 'auth'   => \$auth,
 );
 
 

@@ -1,0 +1,12 @@
+use Digest;
+
+$md5  = Digest->new("MD5");
+
+while(<>) {
+  my @a = split/\t/;
+  die if @a != 2;
+  $a[1] = uc $a[1];
+  $md5->add($a[1]) or die "could not add $a[1] to the md5 obj";
+  print $md5->hexdigest(), "\n";
+  $md5->reset() or die "cound not reset the md5 object";
+}

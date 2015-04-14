@@ -1,0 +1,5 @@
+while(<>){
+	chomp;
+	print "\n$_\t" if /^>/;
+	print $_ unless /^>/;
+}
