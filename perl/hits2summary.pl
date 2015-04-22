@@ -33,6 +33,7 @@ my $source_from_options = undef ;
 
 GetOptions (
 	'sims=s' 	=> \$file,
+	'file=s'    => \$file,
 	'source=s'  => \$$source_from_options, 	# overwrite existing source tag 
 	'verbose+'  => \$verbose,
 	'format=s'  => \$format,				# format of input sims file
@@ -74,10 +75,10 @@ my $block   = {} ;
 # expanded: md5|query, fragment|subject, identity, length, evalue, function, organism, source, tax_id
 
 
-print STDERR "Reading SIMS file $file.\n" ;
-open(SIMS , "$file") or die "Can't open file $file for reading!" ;
+print STDERR "Reading hits file $file.\n" ;
+open(FILE , "$file") or die "Can't open file $file for reading!" ;
 
-while( my $line = <SIMS>){
+while( my $line = <FILE>){
 	
 	# GF8803K01A004I_1_134_-  db0bbf5d776a54052c7a5eab36e9e052        80.00   30      6       0       10      39      192     221     4.4e-07 53.0
 	# expanded: md5|query, fragment|subject, identity, length, evalue, function, organism, source, tax_id
