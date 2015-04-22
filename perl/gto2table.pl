@@ -51,7 +51,7 @@ foreach my $feature ( @{$gto->{features}} ){
 	#print Dumper $feature ;
 
 	if (exists $feature->{function} or exists $feature->{organism}){
-		print join ("\t" , $feature->{id} , $feature->{function} || 'undef' , $feature->{organism} || 'undef') , "\n" ;
+		print join ("\t" , $feature->{id} , $feature->{function} || 'undef' , $feature->{organism} || 'undef' , $feature->{quality}->{hit_count} || undef ) , "\n" ;
 	}
 	
 }
