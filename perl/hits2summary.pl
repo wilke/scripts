@@ -100,25 +100,29 @@ while( my $line = <FILE>){
 	}
  
 	
-	
-	
-	push @{$block->{$entry[$acolumn]}} , {
-		read => $entry[1] , 
-		md5 => $entry[0] , 
-		function => $entry[5] , 
-		organism => $entry[6] , 
-		tax_id => ($entry[8] || undef) ,
-		source => $entry[7]    ,
-		identity => $entry[2] , 
-		length => $entry[3] , 
-		mismatch => undef , 
-		gaps => undef , 
-		query_start => undef , 
-		query_end => undef ,
-		subject_start => undef , 
-		subject_end => undef , 
-		evalue => (defined $ecolumn ? $entry[$ecolumn] : $entry[4] ) , 
-		score => undef } ;
+	if ($type eq 'gto'){
+		my $hcolumn = $ecolumn || 3 ;
+		push @{$block->{$entry[$acolumn]}} , { hit_count => $entry[$hcolumn] } ;
+	}
+	else{
+		push @{$block->{$entry[$acolumn]}} , {
+			read => $entry[1] , 
+			md5 => $entry[0] , 
+			function => $entry[5] , 
+			organism => $entry[6] , 
+			tax_id => ($entry[8] || undef) ,
+			source => $entry[7]    ,
+			identity => $entry[2] , 
+			length => $entry[3] , 
+			mismatch => undef , 
+			gaps => undef , 
+			query_start => undef , 
+			query_end => undef ,
+			subject_start => undef , 
+			subject_end => undef , 
+			evalue => (defined $ecolumn ? $entry[$ecolumn] : $entry[4] ) , 
+			score => undef } ;
+		}
 	
  
 }
