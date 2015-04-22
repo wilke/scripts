@@ -51,8 +51,11 @@ open(FASTA , $fasta) or die "Can't open file $fasta for reading!\n" ;
 my @records ;
 my $counter = 1;
 while(my $record = <FASTA>){
-	#print $record ;
-
+	
+	# remove line end character, here \n>
+	
+	chomp $record ;
+	
 	push @records , $record ;
 	
 	if (scalar @records >= $nr_records){
@@ -74,9 +77,9 @@ sub create_gto{
 
 	while( my $record = shift @$records){
 		my($header,$seq) = split "\n" , $record ;
-		my ($id) = $header =~/>*(\w+)/;
+		my ($id) = $header =~/>*([^\s]+)/;
 		
-		#print  join "\t" , "HERE" , $id , $header , "\n" ;
+		
 		
 		my $feature = { 
 			"protein_translation" => $seq ,
