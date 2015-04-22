@@ -51,7 +51,7 @@ open(FASTA , $fasta) or die "Can't open file $fasta for reading!\n" ;
 my @records ;
 my $counter = 1;
 while(my $record = <FASTA>){
-	print $record ;
+	#print $record ;
 
 	push @records , $record ;
 	
@@ -72,11 +72,11 @@ close(FASTA);
 sub create_gto{
 	my ($records) = @_ ;
 
-	foreach my $record (@$records){
+	while( my $record = shift @$records){
 		my($header,$seq) = split "\n" , $record ;
 		my ($id) = $header =~/>*(\w+)/;
 		
-		print  join "\t" , "HERE" , $id , $header , "\n" ;
+		#print  join "\t" , "HERE" , $id , $header , "\n" ;
 		
 		my $feature = { 
 			"protein_translation" => $seq ,
