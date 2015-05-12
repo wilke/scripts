@@ -78,8 +78,11 @@ unless($source){
 
 
 
+my @keys = keys %hash ;
+print STDERR , "DB has " . scalar (@keys) . " entries.\n" ;
+print STDERR "Example keys are " , join "\t" , $keys[0..5] , "\n" ;
 
-
+exit;
 
 
 open(SIMS , $file) or die "Can't open file $file!" ;
@@ -189,7 +192,7 @@ sub query_m5nr{
 	
 	# body for query
 	my $request = { 
-		source => 'ITS' ,
+		source => $source ,
 		version => '10' ,
 		limit => '1000' ,
 		data   => $md5s
