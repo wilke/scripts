@@ -11,20 +11,24 @@ use Getopt::Long;
 
 my $file 		= undef ;
 my $verbose 	= 0 ;
+my $debug       = 0 ;
 my $source 		= undef ;
 my $format  	= undef ;
 my $base_url 	= "http://api.metagenomics.anl.gov/m5nr" ;
 my $dbfile      = undef ;
 my $batch_size  = 100 ;
+my $nr_md5s     = 1000;
 
 GetOptions (
 	'sims=s' 	=> \$file,
 	'source=s'  => \$source,
 	'verbose+'  => \$verbose,
+        'debug+'    => \$debug,
 	'format=s'  => \$format,
 	'url=s'     => \$base_url,
 	'dbfile=s'  => \$dbfile,
 	'batch=i'   => \$batch_size,
+        'md5s=i'    => \$nr_md5s ,
 	);
 
 #################################
@@ -110,7 +114,7 @@ while( my $line = <SIMS>){
 	$md5set->{$md5}++ ;
 	
 	
-	if (scalar @batch >= $batch_size){
+	if (scalar @batch >= $batch_size or (scalar (keys %$md5set)) >= $nr_md5s){
 		
 		print STDERR "Processing ".scalar @batch." lines with " . scalar (keys %$md5set) . " md5s.\n" if ($verbose > 2) ;
 		
@@ -122,10 +126,12 @@ while( my $line = <SIMS>){
 		my $mapping = [] ;
 		
 		if($db){
+		    print STDERR "Query Berkeley DB\n" if ($verbose > 3) ;
 			$mapping = &query_berkeley_db( [ keys %$md5set] ) if (keys %$md5set);
 		}
 		elsif($base_url){
-			$mapping = &query_m5nr( [ keys %$md5set] ) if (keys %$md5set);
+		    print STDERR "Query API\n" if ($verbose >3) ;
+			$mapping = &query_m5nr( [ keys %$md5set] , $source ) if (keys %$md5set);
 		}
 		else{
 			print STDERR "Not implemented.\n" ;
@@ -139,8 +145,9 @@ while( my $line = <SIMS>){
 		# md5 hash for fast lookup and printing
 		map { push @{$md5hash->{$_->{md5}}} , $_ } @$mapping ;
 		
-		print_sims(\@batch , $md5hash);
 		
+		print_sims(\@batch , $md5hash);
+		$md5set = {} ;
 		
 
 		
@@ -158,23 +165,24 @@ close(SIMS);
 sub print_sims{
 	my ($batch , $md5hash) = @_ ;
 	
+
 	while(my $entries = shift @$batch){
 		
 		my $read = shift @$entries ;
 		my $md5  = shift @$entries ;
 		
-		foreach my $md5entry (@{$md5hash->{ $entries->[1 ]} }){
+		foreach my $md5entry (@{$md5hash->{ $md5 } }){
 			
 			if ($format eq 'expanded'){
 	 	   
 			   # expanded: md5|query, fragment|subject, identity, length, evalue, function, organism, source, tax_id
 		       print join ("\t" ,   $md5 , $read ,  $entries->[0] , $entries->[1] , $entries->[8] , ($md5entry->{function} || 'undef') ,  
-			   $md5entry->{organism} , $md5entry->{$source} , ($md5entry->{ncbi_tax_id} || '') ), "\n" ; 
+			   $md5entry->{organism} , $md5entry->{source} , ($md5entry->{ncbi_tax_id} || '') ), "\n" ; 
 		   }
 		   else{
 		   
-			   print join ("\t" , $read ,  $md5, ($md5entry->{function} || '') , $md5entry->{organism} , 
-			   @$entries) , "\n" ;   
+		       print join ("\t" , $read ,  $md5, ($md5entry->{function} || 'undef') , ($md5entry->{organism} || 'undef') , ($md5entry->{source} || 'undef')
+			   , @$entries) , "\n" ;   
 		   }
 			
 		}  
@@ -182,16 +190,16 @@ sub print_sims{
 }	
 			
 sub query_m5nr{
-	my ($md5s , $sources , $versions) = @_ ;
+	my ($md5s , $source , $versions) = @_ ;
 	
 	# {"source":"InterPro","data":["000821a2e2f63df1a3873e4b280002a8","15bf1950bd9867099e72ea6516e3d602"]}
 
 	
 	# body for query
 	my $request = { 
-		source => 'ITS' ,
+		source => $source ,
 		version => '10' ,
-		limit => '1000' ,
+		limit => (scalar @$md5s * 100) ,
 		data   => $md5s
 	};
 
@@ -202,9 +210,11 @@ sub query_m5nr{
 	
 	
     my $response = $ua->post( $base_url.'/md5' , Content => $body );
-	
-	# print STDERR Dumper $body ;
- 
+
+	if ($debug){
+	    print STDERR "POST to $base_url/md5\n";
+	    print STDERR "Body:\n" , Dumper $body ;
+	} 
     if ($response->is_success) {
         #print $response->decoded_content;  # or whatever
 		
@@ -215,7 +225,10 @@ sub query_m5nr{
     else {
         die $response->status_line;
     } 
-
+	if ($debug){
+	    print STDERR "Dumping results from API query:\n" ;
+	    print STDERR Dumper $md52annotation ;
+	}
 	return $md52annotation ;
 }			
 	
