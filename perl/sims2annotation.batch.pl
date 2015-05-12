@@ -82,8 +82,11 @@ unless($source){
 
 
 
+my @keys = keys %hash ;
+print STDERR , "DB has " . scalar (@keys) . " entries.\n" ;
+print STDERR "Example keys are " , join "\t" , $keys[0..5] , "\n" ;
 
-
+exit;
 
 
 open(SIMS , $file) or die "Can't open file $file!" ;
