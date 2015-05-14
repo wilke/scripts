@@ -18,7 +18,7 @@ my $base_url 	= "http://api.metagenomics.anl.gov/m5nr" ;
 my $dbfile      = undef ;
 my $batch_size  = 100 ;
 my $nr_md5s     = 1000;
-
+my $k           = undef ; # Test key for debugging
 GetOptions (
 	'sims=s' 	=> \$file,
 	'source=s'  => \$source,
@@ -29,6 +29,7 @@ GetOptions (
 	'dbfile=s'  => \$dbfile,
 	'batch=i'   => \$batch_size,
         'md5s=i'    => \$nr_md5s ,
+        'tkey=s'    => \$k,
 	);
 
 #################################
@@ -83,11 +84,34 @@ unless($source){
 
 
 my @keys = keys %hash ;
-print STDERR , "DB has " . scalar (@keys) . " entries.\n" ;
-print STDERR "Example keys are " , join "\t" , $keys[0..5] , "\n" ;
 
-exit;
+if ($verbose) {
+    print STDERR "DB has " . scalar (@keys) . " entries.\n" ;
+    print STDERR "Example keys are " , join "\t" , @keys[0..3] , "\n" ;
+    print STDERR "Example entry for key " . $keys[5] . " is " . $hash{$keys[5]}.  "\n";
+}
 
+if ($debug > 3){
+
+    print STDERR "Debug level = $debug \n";
+
+    foreach my $k (@keys){
+	print STDERR $k , "\n" ;
+	print "Key: $k\n";
+	print $hash{$k} ;
+    }
+    exit ;
+}
+
+if($debug and $k){
+    print STDERR "Retrieving entry for key: $k\n" ;
+    my $v = $hash{$k} ;
+    chomp $v ;
+    print STDERR $v , "\n" ;
+
+    exit unless ($hash{$k}) ;
+    exit;
+}
 
 open(SIMS , $file) or die "Can't open file $file!" ;
 
@@ -116,6 +140,8 @@ while( my $line = <SIMS>){
 	# Create md5 query set
 	$md5set->{$md5}++ ;
 	
+	#print STDERR $md5 , "\n";
+	#print STDERR $hash{$md5} ;
 	
 	if (scalar @batch >= $batch_size or (scalar (keys %$md5set)) >= $nr_md5s){
 		
@@ -141,7 +167,7 @@ while( my $line = <SIMS>){
 		}
 		
 		my $stop = time ;
-		print STDERR "\t" , ($stop - $start) , "\n" if (@batch);
+		print STDERR join "\t" ,  'Time:' , ($stop - $start) , "\n" if (@batch);
 		
 		my $md5hash = {} ;
 		
@@ -168,6 +194,10 @@ close(SIMS);
 sub print_sims{
 	my ($batch , $md5hash) = @_ ;
 	
+
+	# print Dumper $batch ;
+	# print Dumper $md5hash ;
+	# exit;
 
 	while(my $entries = shift @$batch){
 		
@@ -253,8 +283,11 @@ sub query_berkeley_db{
 			next;
 		}
 	
+
+		print STDERR "Found entry\n";
+
 		foreach my $line (split "\n" , $hash{$md5}){
-			my ($md5 , $id , $func , $org , $source ) = split "\t" , $line ;
+			my ($id , $func , $org , $source ) = split "\t" , $line ;
 	
 			 push @{$md52annotation} ,  { 
 				 						md5 => $md5 ,
