@@ -96,7 +96,7 @@ while( my $line = <SIMS>){
 	}
 	else{
 		# m8: query, subject, function , organism , identity, length, mismatch, gaps, q_start, q_end, s_start, s_end, evalue, bit_score
-		($read , $md5 , $function , $organism , $identity , $length , $mismatch , $gaps , $q_start , $q_end , $s_star , $s_end , $evalue , $score ) = split "\t" , $line ;
+		($read , $md5 , $function , $organism , $source , $identity , $length , $mismatch , $gaps , $q_start , $q_end , $s_star , $s_end , $evalue , $score ) = split "\t" , $line ;
 		
 	}
 	
