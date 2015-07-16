@@ -279,7 +279,7 @@ sub query_berkeley_db{
 	foreach my $md5 (@$md5s){
 	
 		unless($hash{$md5}){
-			print STDERR "No entry for $md5\n";
+			print STDERR "No entry for $md5\n" if ($debug > 3);
 			next;
 		}
 	
