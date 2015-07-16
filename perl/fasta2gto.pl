@@ -71,6 +71,7 @@ dump_gto($path_and_filename , $counter) ;
 
 close(FASTA);	
 
+print "Created $counter chunks.\n";
 
 sub create_gto{
 	my ($records) = @_ ;
